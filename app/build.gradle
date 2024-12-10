@@ -41,10 +41,11 @@ android {
         targetCompatibility = '1.8'
     }
 
-    dynamicFeatures = [':kotlin',
+    dynamicFeatures = [':assets',
+                       ':kotlin',
                        ':java',
-                       ':native',
-                       ':assets']
+                       ':native']
+
 }
 
 dependencies {

@@ -23,7 +23,6 @@ import com.bumptech.glide.Glide
 import com.google.android.samples.dynamicfeatures.BaseSplitActivity
 import com.google.android.samples.dynamicfeatures.ondemand.kotlin.R
 
-
 /** A simple Activity displaying some text, written in Kotlin. */
 class KotlinSampleActivity : BaseSplitActivity() {
 

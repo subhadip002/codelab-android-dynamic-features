@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.android.dynamic-feature'
-}
+apply plugin: 'com.android.dynamic-feature'
 
 android {
 

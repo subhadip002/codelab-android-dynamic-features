@@ -41,6 +41,40 @@ private const val nativeSampleClassname = "$packageName.NativeSampleActivity"
 /** Activity that displays buttons and handles loading of feature modules. */
 class MainActivity : AppCompatActivity() {
 
+    /** Listener used to handle changes in state for install requests. */
+    private val listener = SplitInstallStateUpdatedListener { state ->
+        val multiInstall = state.moduleNames().size > 1
+        val names = state.moduleNames().joinToString(" - ")
+        when (state.status()) {
+            SplitInstallSessionStatus.DOWNLOADING -> {
+                //  In order to see this, the application has to be uploaded to the Play Store.
+                displayLoadingState(state, "Downloading $names")
+            }
+            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> {
+                /*
+                  This may occur when attempting to download a sufficiently large module.
+
+                  In order to see this, the application has to be uploaded to the Play Store.
+                  Then features can be requested until the confirmation path is triggered.
+                 */
+                startIntentSender(state.resolutionIntent()?.intentSender, null, 0, 0, 0)
+            }
+            SplitInstallSessionStatus.INSTALLED -> {
+                onSuccessfulLoad(names, launch = !multiInstall)
+            }
+
+            SplitInstallSessionStatus.INSTALLING -> displayLoadingState(state, "Installing $names")
+            SplitInstallSessionStatus.FAILED -> {
+                toastAndLog("Error: ${state.errorCode()} for module ${state.moduleNames()}")
+            }
+        }
+    }
+
+    private val moduleKotlin by lazy { getString(R.string.module_feature_kotlin) }
+    private val moduleJava by lazy { getString(R.string.module_feature_java) }
+    private val moduleNative by lazy { getString(R.string.module_native) }
+    private val moduleAssets by lazy { getString(R.string.module_assets) }
+
     private val clickListener by lazy {
         View.OnClickListener {
             when (it.id) {
@@ -55,98 +89,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Load a feature by module name.
-     * @param name The name of the feature module to load.
-     */
-    private fun loadAndLaunchModule(name: String) {
-        updateProgressMessage("Loading module $name")
-        // Skip loading if the module already is installed. Perform success action directly.
-        if (manager.installedModules.contains(name)) {
-            updateProgressMessage("Already installed")
-            onSuccessfulLoad(name, launch = true)
-            return
-        }
-
-        // Create request to install a feature module by name.
-        val request = SplitInstallRequest.newBuilder()
-            .addModule(name)
-            .build()
-
-        // Load and install the requested feature module.
-        manager.startInstall(request)
-
-        updateProgressMessage("Starting install for $name")
-    }
-
     private lateinit var manager: SplitInstallManager
+
     private lateinit var progress: Group
     private lateinit var buttons: Group
     private lateinit var progressBar: ProgressBar
     private lateinit var progressText: TextView
-    private val moduleKotlin by lazy { getString(R.string.module_feature_kotlin) }
-    private val moduleJava by lazy { getString(R.string.module_feature_java) }
-    private val moduleNative by lazy { getString(R.string.module_native) }
-    private val moduleAssets by lazy { getString(R.string.module_assets) }
-
-    /** Listener used to handle changes in state for install requests. */
-    private val listener = SplitInstallStateUpdatedListener { state ->
-        val multiInstall = state.moduleNames().size > 1
-        val names = state.moduleNames().joinToString(" - ")
-        when (state.status()) {
-            SplitInstallSessionStatus.DOWNLOADING -> {
-                //  In order to see this, the application has to be uploaded to the Play Store.
-                displayLoadingState(state, "Downloading $names")
-            }
-
-            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> {
-                /*
-                  This may occur when attempting to download a sufficiently large module.
-
-                  In order to see this, the application has to be uploaded to the Play Store.
-                  Then features can be requested until the confirmation path is triggered.
-                 */
-                startIntentSender(state.resolutionIntent()?.intentSender, null, 0, 0, 0)
-            }
-
-            SplitInstallSessionStatus.INSTALLED -> {
-                onSuccessfulLoad(names, launch = !multiInstall)
-            }
-
-            SplitInstallSessionStatus.INSTALLING -> displayLoadingState(state, "Installing $names")
-            SplitInstallSessionStatus.FAILED -> {
-                toastAndLog("Error: ${state.errorCode()} for module ${state.moduleNames()}")
-            }
-        }
-    }
-
-    /**
-     * Define what to do once a feature module is loaded successfully.
-     * @param moduleName The name of the successfully loaded module.
-     * @param launch `true` if the feature module should be launched, else `false`.
-     */
-    private fun onSuccessfulLoad(moduleName: String, launch: Boolean) {
-        if (launch) {
-            when (moduleName) {
-                moduleKotlin -> launchActivity(kotlinSampleClassname)
-                moduleJava -> launchActivity(javaSampleClassname)
-                moduleNative -> launchActivity(nativeSampleClassname)
-                moduleAssets -> displayAssets()
-            }
-        }
-
-        displayButtons()
-    }
-
-    /** Display a loading state to the user. */
-    private fun displayLoadingState(state: SplitInstallSessionState, message: String) {
-        displayProgress()
-
-        progressBar.max = state.totalBytesToDownload().toInt()
-        progressBar.progress = state.bytesDownloaded().toInt()
-
-        updateProgressMessage(message)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,6 +117,30 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
     }
 
+    /**
+     * Load a feature by module name.
+     * @param name The name of the feature module to load.
+     */
+    private fun loadAndLaunchModule(name: String) {
+        updateProgressMessage("Loading module $name")
+        // Skip loading if the module already is installed. Perform success action directly.
+        if (manager.installedModules.contains(name)) {
+            updateProgressMessage("Already installed")
+            onSuccessfulLoad(name, launch = true)
+            return
+        }
+
+        // Create request to install a feature module by name.
+        val request = SplitInstallRequest.newBuilder()
+                .addModule(name)
+                .build()
+
+        // Load and install the requested feature module.
+        manager.startInstall(request)
+
+        updateProgressMessage("Starting install for $name")
+    }
+
     /** Display assets loaded from the assets feature module. */
     private fun displayAssets() {
         // Get the asset manager with a refreshed context, to access content of newly installed apk.
@@ -184,55 +156,6 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Asset content")
             .setMessage(assetContent)
             .show()
-    }
-
-    /** Launch an activity by its class name. */
-    private fun launchActivity(className: String) {
-        Intent().setClassName(packageName, className)
-                .also {
-                    startActivity(it)
-                }
-    }
-
-    /** Set up all view variables. */
-    private fun initializeViews() {
-        buttons = findViewById(R.id.buttons)
-        progress = findViewById(R.id.progress)
-        progressBar = findViewById(R.id.progress_bar)
-        progressText = findViewById(R.id.progress_text)
-        setupClickListener()
-    }
-
-    /** Set all click listeners required for the buttons on the UI. */
-    private fun setupClickListener() {
-        setClickListener(R.id.btn_load_kotlin, clickListener)
-        setClickListener(R.id.btn_load_java, clickListener)
-        setClickListener(R.id.btn_load_assets, clickListener)
-        setClickListener(R.id.btn_load_native, clickListener)
-        setClickListener(R.id.btn_install_all_now, clickListener)
-        setClickListener(R.id.btn_install_all_deferred, clickListener)
-        setClickListener(R.id.btn_request_uninstall, clickListener)
-    }
-
-    private fun setClickListener(id: Int, listener: View.OnClickListener) {
-        findViewById<View>(id).setOnClickListener(listener)
-    }
-
-    private fun updateProgressMessage(message: String) {
-        if (progress.visibility != View.VISIBLE) displayProgress()
-        progressText.text = message
-    }
-
-    /** Display progress bar and text. */
-    private fun displayProgress() {
-        progress.visibility = View.VISIBLE
-        buttons.visibility = View.GONE
-    }
-
-    /** Display buttons to accept user input. */
-    private fun displayButtons() {
-        progress.visibility = View.GONE
-        buttons.visibility = View.VISIBLE
     }
 
     /** Install all features but do not launch any of them. */
@@ -271,15 +194,92 @@ class MainActivity : AppCompatActivity() {
     /** Request uninstall of all features. */
     private fun requestUninstall() {
 
-        toastAndLog(
-            "Requesting uninstall of all modules." +
-                    "This will happen at some point in the future."
-        )
+        toastAndLog("Requesting uninstall of all modules." +
+                "This will happen at some point in the future.")
 
         val installedModules = manager.installedModules.toList()
         manager.deferredUninstall(installedModules).addOnSuccessListener {
             toastAndLog("Uninstalling $installedModules")
         }
+    }
+
+    /**
+     * Define what to do once a feature module is loaded successfully.
+     * @param moduleName The name of the successfully loaded module.
+     * @param launch `true` if the feature module should be launched, else `false`.
+     */
+    private fun onSuccessfulLoad(moduleName: String, launch: Boolean) {
+        if (launch) {
+            when (moduleName) {
+                moduleKotlin -> launchActivity(kotlinSampleClassname)
+                moduleJava -> launchActivity(javaSampleClassname)
+                moduleNative -> launchActivity(nativeSampleClassname)
+                moduleAssets -> displayAssets()
+            }
+        }
+
+        displayButtons()
+    }
+
+    /** Launch an activity by its class name. */
+    private fun launchActivity(className: String) {
+        Intent().setClassName(packageName, className)
+                .also {
+                    startActivity(it)
+                }
+    }
+
+
+    /** Display a loading state to the user. */
+    private fun displayLoadingState(state: SplitInstallSessionState, message: String) {
+        displayProgress()
+
+        progressBar.max = state.totalBytesToDownload().toInt()
+        progressBar.progress = state.bytesDownloaded().toInt()
+
+        updateProgressMessage(message)
+    }
+
+    /** Set up all view variables. */
+    private fun initializeViews() {
+        buttons = findViewById(R.id.buttons)
+        progress = findViewById(R.id.progress)
+        progressBar = findViewById(R.id.progress_bar)
+        progressText = findViewById(R.id.progress_text)
+
+        setupClickListener()
+    }
+
+    /** Set all click listeners required for the buttons on the UI. */
+    private fun setupClickListener() {
+        setClickListener(R.id.btn_load_kotlin, clickListener)
+        setClickListener(R.id.btn_load_java, clickListener)
+        setClickListener(R.id.btn_load_assets, clickListener)
+        setClickListener(R.id.btn_load_native, clickListener)
+        setClickListener(R.id.btn_install_all_now, clickListener)
+        setClickListener(R.id.btn_install_all_deferred, clickListener)
+        setClickListener(R.id.btn_request_uninstall, clickListener)
+    }
+
+    private fun setClickListener(id: Int, listener: View.OnClickListener) {
+        findViewById<View>(id).setOnClickListener(listener)
+    }
+
+    private fun updateProgressMessage(message: String) {
+        if (progress.visibility != View.VISIBLE) displayProgress()
+        progressText.text = message
+    }
+
+    /** Display progress bar and text. */
+    private fun displayProgress() {
+        progress.visibility = View.VISIBLE
+        buttons.visibility = View.GONE
+    }
+
+    /** Display buttons to accept user input. */
+    private fun displayButtons() {
+        progress.visibility = View.GONE
+        buttons.visibility = View.VISIBLE
     }
 }
 

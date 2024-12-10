@@ -17,7 +17,6 @@
 package com.google.android.samples.dynamicfeatures.ondemand;
 
 import android.os.Bundle;
-
 import com.google.android.samples.dynamicfeatures.BaseSplitActivity;
 import com.google.android.samples.dynamicfeatures.ondemand.java.R;
 
