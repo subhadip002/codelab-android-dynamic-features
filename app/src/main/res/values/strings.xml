@@ -19,6 +19,7 @@
     <string name="load_feature_kotlin">Start Kotlin Feature</string>
     <string name="load_feature_java">Start Java Feature</string>
     <string name="load_native_code">Start Native Feature</string>
+    <string name="load_kyc">Start KYC Feature</string>
     <string name="load_assets">Show assets</string>
     <string name="loading">Loading</string>
     <string name="instructions">Press a button to perform an action.</string>

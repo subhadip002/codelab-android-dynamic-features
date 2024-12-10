@@ -20,12 +20,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.Group
+import com.app.platform.OpenNavigationModule
 import com.google.android.play.core.splitinstall.SplitInstallManager
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
@@ -248,6 +250,10 @@ class MainActivity : AppCompatActivity() {
         progressText = findViewById(R.id.progress_text)
 
         setupClickListener()
+
+        findViewById<Button>(R.id.btn_load_kyc).setOnClickListener {
+            OpenNavigationModule(this).startKYCNavigation()
+        }
     }
 
     /** Set all click listeners required for the buttons on the UI. */
