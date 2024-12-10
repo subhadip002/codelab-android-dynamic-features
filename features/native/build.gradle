@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.dynamic-feature' // Updated line
+    id 'kotlin-android'
+}
 
 android {
 
@@ -39,8 +41,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.3.0'
-    implementation 'androidx.appcompat:appcompat:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation project(':app')
+    implementation "androidx.appcompat:appcompat:1.4.0"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.2"
 }

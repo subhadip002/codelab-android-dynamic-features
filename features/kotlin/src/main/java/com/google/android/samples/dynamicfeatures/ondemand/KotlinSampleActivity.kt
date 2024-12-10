@@ -17,15 +17,27 @@
 package com.google.android.samples.dynamicfeatures.ondemand
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.google.android.samples.dynamicfeatures.BaseSplitActivity
 import com.google.android.samples.dynamicfeatures.ondemand.kotlin.R
 
+
 /** A simple Activity displaying some text, written in Kotlin. */
-class KotlinSampleActivity : AppCompatActivity() {
+class KotlinSampleActivity : BaseSplitActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feature_kotlin)
+
+        val imageView = findViewById<View>(R.id.imageView) as ImageView
+
+        Glide
+            .with(this)
+            .load("https://farm2.staticflickr.com/1533/26541536141_41abe98db3_z_d.jpg")
+            .fitCenter()
+            .into(imageView)
     }
 
 }

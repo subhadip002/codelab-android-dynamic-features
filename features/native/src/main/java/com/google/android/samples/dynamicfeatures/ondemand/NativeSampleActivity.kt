@@ -20,9 +20,10 @@ import android.os.Bundle
 import android.widget.TextView
 import com.google.android.samples.dynamicfeatures.ondemand.ccode.R
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.samples.dynamicfeatures.BaseSplitActivity
 
 /** A simple activity displaying some text coming through via JNI. */
-class NativeSampleActivity : AppCompatActivity() {
+class NativeSampleActivity : BaseSplitActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

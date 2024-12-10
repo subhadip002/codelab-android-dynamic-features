@@ -19,15 +19,14 @@
 buildscript {
 
     ext.versions = [
-            'compileSdk'        : 31,
-            'minSdk'            : 16,
-            'targetSdk'         : 31,
+            'compileSdk'        : 34,
+            'minSdk'            : 21,
+            'targetSdk'         : 34,
             'kotlin'            : '1.6.10',
-            'playcore'          : '1.10.3'
     ]
 
     ext.names = [
-            'applicationId': 'com.google.android.samples.dynamicfeatures.ondemand'
+            'applicationId': 'com.subhadip.android.samples.dynamicfeatures.ondemand'
     ]
 
     repositories {
