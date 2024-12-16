@@ -19,6 +19,7 @@ package com.google.android.samples.dynamicfeatures.ondemand
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.google.android.samples.dynamicfeatures.BaseSplitActivity
 import com.google.android.samples.dynamicfeatures.ondemand.kotlin.R
@@ -37,6 +38,17 @@ class KotlinSampleActivity : BaseSplitActivity() {
             .load("https://farm2.staticflickr.com/1533/26541536141_41abe98db3_z_d.jpg")
             .fitCenter()
             .into(imageView)
+
+        // Get the asset manager with a refreshed context, to access content of newly installed apk.
+        val assetManager = createPackageContext(packageName, 0).assets
+        // Now treat it like any other asset file.
+        val assets = assetManager.open("assets.txt")
+        val assetContent = assets.bufferedReader()
+            .use {
+                it.readText()
+            }
+
+        findViewById<TextView>(R.id.textView).text = assetContent
     }
 
 }

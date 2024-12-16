@@ -25,8 +25,8 @@ android {
         applicationId names.applicationId
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
-        versionCode 18
-        versionName "1.2"
+        versionCode 20
+        versionName "1.0"
     }
 
     buildTypes {
